@@ -17,7 +17,7 @@ def form():
                 <form action="/transform" method="post" enctype="multipart/form-data">
                     <table><tr><td>
                     Upload the current covid data:</td>
-                    <td><input type="file" name="data_file" />
+                    <td><!--<input type="file" name="data_file" />-->
                     </td>
                     </tr>
                     <tr>
@@ -42,12 +42,12 @@ def transform_view():
         numdays= request.form['predict_days']
         
         # data_file is the name of the file upload field
-        f = request.files['data_file']
+        #f = request.files['data_file']
         # for security - stops a hacker e.g. trying to overwrite system files
-        filename = secure_filename(f.filename)
+        #filename = secure_filename(f.filename)
         # save a copy of the uploaded file
-        f.save(filename)
-        
+        #f.save(filename)
+        filename='data/Data.csv'
         df = pd.read_csv(filename, index_col='Date', parse_dates=True)
         df_Confirmed  = df.drop(['Recovered','Deaths'],axis=1)
         df_Recovered  = df.drop(['Confirmed','Deaths'],axis=1)
