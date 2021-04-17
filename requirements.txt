@@ -1,4 +1,7 @@
 gunicorn
+pickleshare==0.7.5
+sklearn
+mpmath==1.1.0
 Flask==1.1.2
 pandas==1.2.2
 numpy==1.19.5

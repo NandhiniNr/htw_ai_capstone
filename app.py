@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 import numpy as np 
 from statsmodels.tsa.arima_model import ARIMA
 import os
+import pickle
 
 app = Flask(__name__)
 
@@ -11,25 +12,23 @@ app = Flask(__name__)
 def form():
     return """
         <html>
-            <body>
-                <h1 align=center>COVID19 PREDICTIONS</h1>
+            <body style="background-color:grey;">
+                <h1 align=center><font color=white><b>COVID19 PREDICTIONS</b></font></h1>
 
                 <form action="/transform" method="post" enctype="multipart/form-data">
-                    <table><tr><td>
+                    <table align=center>
+                    <!--<tr><td>
                     Upload the current covid data:</td>
-                    <td><!--<input type="file" name="data_file" />-->
-                    </td>
-                    </tr>
+                    <td><input type="file" name="data_file" />
+                    </td></tr>-->
                     <tr>
-                    <td>
+                    <td><font color=white>
                     Number of days to Predict: </td><td><input type="text" value="90" name="predict_days" />
-                     </td>
-                    </tr>
-                    <tr>
-                    <td colspan=2 align=right>
+                     </font>
+                     <!--</td></tr>
+                    <tr><td colspan=2 align=right>-->
                     <input type="submit" value = "Predict"/>
-                    </td>
-                    </tr>
+                    </td></tr>
                 </form>
 
             </body>
@@ -40,14 +39,28 @@ def form():
 def transform_view():
     if request.method == 'POST':
         numdays= request.form['predict_days']
+        modelfilename = 'model/predict_covid_model.pkl'
+        results_ARIMA = pickle.load(open(modelfilename, 'rb'))
+        datafilename = 'data/Data.csv'
+        df = pd.read_csv(datafilename, index_col='Date', parse_dates=True)
+        start_index = int(len(df)*70/100)
+        stop_index = len(df) + int(numdays)
+        Confirmed_path='static/images/df_Confirmed.png'
+        results_ARIMA.plot_predict(start_index,stop_index).savefig(Confirmed_path)
+        return render_template('index.html',  user_image = 'df_Confirmed.png')
+        
+def transform_withDataFileUpload():
+    # Not using this since Heroku has 30secs timeout and training is timing out
+    if request.method == 'POST':
+        numdays= request.form['predict_days']
         
         # data_file is the name of the file upload field
-        #f = request.files['data_file']
+        f = request.files['data_file']
         # for security - stops a hacker e.g. trying to overwrite system files
-        #filename = secure_filename(f.filename)
+        filename = secure_filename(f.filename)
         # save a copy of the uploaded file
-        #f.save(filename)
-        filename='data/Data.csv'
+        f.save(filename)
+        
         df = pd.read_csv(filename, index_col='Date', parse_dates=True)
         df_Confirmed  = df.drop(['Recovered','Deaths'],axis=1)
         df_Recovered  = df.drop(['Confirmed','Deaths'],axis=1)
